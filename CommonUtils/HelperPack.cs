@@ -1,7 +1,8 @@
 ﻿public class HelperPack
 {
     public const string bugReportFormUrl = @"https://forms.office.com/r/yesm6nsfsM?origin=lprLink";
-    const string commentKey = "LOTR|ABCD|abcd|1234|~!@#";
+    private const string encryptionKey = "LOTR|ABCD|LogiTrack|1234|~!@#";
+
     public static byte[] GenerateQRCode(string qrText)
     {
         using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
@@ -15,58 +16,54 @@
         }
     }
 
-    public static string DecryptText(string encryptText)
+    public static string Decrypt(string encryptedString)
     {
-        byte[] results;
-        using (SHA256CryptoServiceProvider hashProvider = new())
+        string decryptedString = string.Empty;
+        
+        using (SHA256 sHA256 = SHA256.Create())
         {
-            using TripleDESCryptoServiceProvider tdesAlgorithm = new();
-            byte[] dataToDecrypt = Convert.FromBase64String(encryptText);
-            byte[] tdesKey = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(commentKey));
-            byte[] trimmedBytes = new byte[24];
-            Buffer.BlockCopy(tdesKey, 0, trimmedBytes, 0, 24);
-            tdesAlgorithm.Key = trimmedBytes;
-            tdesAlgorithm.Mode = CipherMode.ECB;
-            tdesAlgorithm.Padding = PaddingMode.PKCS7;
-            try
+            byte[] dataToDecrypt = Convert.FromBase64String(encryptedString);
+            byte[] computedHashCode = sHA256.ComputeHash(Encoding.UTF8.GetBytes(encryptionKey));
+            byte[] aesKey = new byte[32];
+            Buffer.BlockCopy(computedHashCode, 0, aesKey, 0, aesKey.Length);
+
+            using (Aes aes = Aes.Create())
             {
-                results = tdesAlgorithm.CreateDecryptor().TransformFinalBlock(dataToDecrypt, 0, dataToDecrypt.Length);
-            }
-            finally
-            {
-                tdesAlgorithm.Clear();
-                hashProvider.Clear();
+                aes.Key = aesKey;
+                aes.Mode = CipherMode.ECB;
+                aes.Padding = PaddingMode.PKCS7;
+                ICryptoTransform symmetricDecryptor = aes.CreateDecryptor();
+                byte[] decryptedDataBytes = symmetricDecryptor.TransformFinalBlock(dataToDecrypt, 0, dataToDecrypt.Length);
+                decryptedString = Encoding.UTF8.GetString(decryptedDataBytes);
             }
         }
-        return Encoding.UTF8.GetString(results);
+        return decryptedString;
     }
 
-    public static string EncryptText(string plainText)
+    public static string Encrypt(string plainString)
     {
-        if (string.IsNullOrWhiteSpace(plainText))
-            return string.Empty;
-
-        byte[] results;
-        using (SHA256CryptoServiceProvider hashProvider = new())
+        string encryptedString = string.Empty;
+        if (!string.IsNullOrWhiteSpace(plainString))
         {
-            using TripleDESCryptoServiceProvider tdesAlgorithm = new();
-            byte[] tdesKey = hashProvider.ComputeHash(Encoding.UTF8.GetBytes(commentKey));
-            var trimmedBytes = new byte[24];
-            Buffer.BlockCopy(tdesKey, 0, trimmedBytes, 0, 24);
-            tdesAlgorithm.Key = trimmedBytes;
-            tdesAlgorithm.Mode = CipherMode.ECB;
-            tdesAlgorithm.Padding = PaddingMode.PKCS7;
-            byte[] dataToEncrypt = Encoding.UTF8.GetBytes(plainText);
-            try
+            using (SHA256 sHA256 = SHA256.Create())
             {
-                results = tdesAlgorithm.CreateEncryptor().TransformFinalBlock(dataToEncrypt, 0, dataToEncrypt.Length);
-            }
-            finally
-            {
-                tdesAlgorithm.Clear();
-                hashProvider.Clear();
+                byte[] encryptionKeyBytes = Encoding.UTF8.GetBytes(encryptionKey);
+                byte[] computedHashCode = sHA256.ComputeHash(encryptionKeyBytes);
+                var aesKey = new byte[32];
+                Buffer.BlockCopy(computedHashCode, 0, aesKey, 0, aesKey.Length);
+
+                using (Aes aes = Aes.Create())
+                {
+                    aes.Key = aesKey;
+                    aes.Mode = CipherMode.ECB;
+                    aes.Padding = PaddingMode.PKCS7;
+                    byte[] dataToEncrypt = Encoding.UTF8.GetBytes(plainString);
+                    ICryptoTransform symmetricEncryptor = aes.CreateEncryptor();
+                    byte[] encryptedDataBytes = symmetricEncryptor.TransformFinalBlock(dataToEncrypt, 0, dataToEncrypt.Length);
+                    encryptedString = Convert.ToBase64String(encryptedDataBytes);
+                }
             }
         }
-        return Convert.ToBase64String(results);
+        return encryptedString;
     }
 }
