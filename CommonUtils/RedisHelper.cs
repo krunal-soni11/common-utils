@@ -5,8 +5,9 @@ public class RedisHelper
     private readonly ConnectionMultiplexer _redis;
     private readonly IDatabase _db;
 
-    public RedisHelper(string connectionString)
+    public RedisHelper(string connectionString)//IConfiguration configuration
     {
+        //string connectionString = configuration["Redis:ConnectionString"];
         _redis = ConnectionMultiplexer.Connect(connectionString);
         _db = _redis.GetDatabase();
     }

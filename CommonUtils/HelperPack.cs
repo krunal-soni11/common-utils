@@ -66,4 +66,23 @@
         }
         return encryptedString;
     }
+
+    public static byte[] GenerateBarcode(string content, int width = 300, int height = 100, int margin = 1)
+    {
+        var writer = new BarcodeWriter<Bitmap>
+        {
+            Format = BarcodeFormat.CODE_128, // You can change format here
+            Options = new EncodingOptions
+            {
+                Width = width,
+                Height = height,
+                Margin = margin
+            }
+        };
+
+        using Bitmap bitmap = writer.Write(content);
+        using MemoryStream ms = new MemoryStream();
+        bitmap.Save(ms, ImageFormat.Png);
+        return ms.ToArray(); // Returns PNG as byte[]
+    }
 }
