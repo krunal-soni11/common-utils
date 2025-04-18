@@ -4,7 +4,6 @@ global using System.Text;
 global using StackExchange.Redis;
 global using ZXing;
 global using ZXing.Common;
-global using System.Drawing;
-global using System.Drawing.Imaging;
+global using SkiaSharp;
 //global using Microsoft.Extensions.Logging;
 //global using Microsoft.Extensions.Options;

@@ -69,7 +69,7 @@
 
     public static byte[] GenerateBarcode(string content, int width = 300, int height = 100, int margin = 1)
     {
-        var writer = new BarcodeWriter<Bitmap>
+        var writer = new BarcodeWriter<SKBitmap>
         {
             Format = BarcodeFormat.CODE_128, // You can change format here
             Options = new EncodingOptions
@@ -80,9 +80,9 @@
             }
         };
 
-        using Bitmap bitmap = writer.Write(content);
+        using SKBitmap bitmap = writer.Write(content);
         using MemoryStream ms = new MemoryStream();
-        bitmap.Save(ms, ImageFormat.Png);
+        //bitmap.Save(ms, SKEncodedImageFormat.Png);
         return ms.ToArray(); // Returns PNG as byte[]
     }
 }
