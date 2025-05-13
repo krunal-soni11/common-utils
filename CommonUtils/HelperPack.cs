@@ -2,20 +2,6 @@
 {
     public const string bugReportFormUrl = @"https://forms.office.com/r/yesm6nsfsM?origin=lprLink";
     private const string encryptionKey = "LOTR|ABCD|LogiTrack|1234|~!@#";
-
-    public static byte[] GenerateQRCode(string qrText)
-    {
-        using (QRCodeGenerator qrGenerator = new QRCodeGenerator())
-        {
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode(qrText, QRCodeGenerator.ECCLevel.Q);
-            using (PngByteQRCode qrCode = new PngByteQRCode(qrCodeData))
-            {
-                byte[] qrCodeAsPng = qrCode.GetGraphic(20);
-                return qrCodeAsPng;
-            }
-        }
-    }
-
     public static string Decrypt(string encryptedString)
     {
         string decryptedString = string.Empty;
@@ -67,22 +53,35 @@
         return encryptedString;
     }
 
-    public static byte[] GenerateBarcode(string content, int width = 300, int height = 100, int margin = 1)
+    public static byte[] GenerateCodeImage(string content, CodeType codeType = CodeType.QR, int width = 300, int height = 100, int margin = 1)
     {
         var writer = new BarcodeWriter<SKBitmap>
         {
-            Format = BarcodeFormat.CODE_128, // You can change format here
+            Format = GetBarcodeFormat(codeType),
             Options = new EncodingOptions
             {
                 Width = width,
                 Height = height,
                 Margin = margin
-            }
+            },
+            Renderer = new SKBitmapRenderer()
         };
 
-        using SKBitmap bitmap = writer.Write(content);
-        using MemoryStream ms = new MemoryStream();
-        //bitmap.Save(ms, SKEncodedImageFormat.Png);
-        return ms.ToArray(); // Returns PNG as byte[]
+        using (var skBitmap = writer.Write(content))
+        using (var skImage = SKImage.FromBitmap(skBitmap))
+        using (var data = skImage.Encode(SKEncodedImageFormat.Png, 100))
+        {
+            return data.ToArray();
+        }
     }
+
+    private static BarcodeFormat GetBarcodeFormat(CodeType codeType) => codeType switch
+    {
+        CodeType.QR => BarcodeFormat.QR_CODE,
+        CodeType.Barcode => BarcodeFormat.CODE_128,
+        CodeType.Aztec => BarcodeFormat.AZTEC,
+        CodeType.DataMatrix => BarcodeFormat.DATA_MATRIX,
+        CodeType.PDF417 => BarcodeFormat.PDF_417,
+        _ => throw new ArgumentOutOfRangeException(nameof(codeType), codeType, null)
+    };
 }

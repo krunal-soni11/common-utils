@@ -1,4 +1,6 @@
-﻿global using Microsoft.IdentityModel.Tokens;
-global using Microsoft.IdentityModel.JsonWebTokens;
+﻿global using System.Text;
 global using System.Security.Claims;
-global using System.Text;
+
+global using Microsoft.IdentityModel.Tokens;
+global using Microsoft.IdentityModel.JsonWebTokens;
+global using Microsoft.Extensions.Options;
