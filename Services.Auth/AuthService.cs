@@ -6,15 +6,19 @@ public class AuthService : IAuthService
     {
         _jwtSettings = jwtOptions.Value;
     }
-    public string CreateJWT(int id, string username, string role)
+    public CreateJwtResponseDto CreateJWT(CreateJwtRequestDto createJwtRequestDto)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
+
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, id.ToString()),
-            new Claim(ClaimTypes.Name, username),
-            new Claim(ClaimTypes.Role, role)
+            new Claim(ClaimTypes.NameIdentifier, createJwtRequestDto.UserId),
+            new Claim(ClaimTypes.Name, createJwtRequestDto.Username)
         };
+        foreach (var role in createJwtRequestDto.Roles)
+        {
+            claims.Add(new Claim(ClaimTypes.Role, role));
+        }
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
@@ -31,10 +35,15 @@ public class AuthService : IAuthService
         //};
         var tokenHandler = new JsonWebTokenHandler();
         string token = tokenHandler.CreateToken(tokenDescriptor);
-        return token;
+        var tokenResponse = new CreateJwtResponseDto
+        {
+            AccessToken = token,
+            ExpiresAt = tokenDescriptor.Expires ?? DateTime.UtcNow.AddHours(1)
+        };
+        return tokenResponse;
     }
 
-    public async Task<string> ValidateJWT(string token)
+    public async Task<ValidateJwtResponseDto> ValidateJWT(ValidateJwtRequestDto validateJwtRequestDto)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
         var tokenHandler = new JsonWebTokenHandler();
@@ -49,18 +58,21 @@ public class AuthService : IAuthService
             ValidateLifetime = true,
             ClockSkew = TimeSpan.Zero // Remove delay of token when expire
         };
+        var validateTokenResponse = new ValidateJwtResponseDto();
         try
         {
-            var principal = await tokenHandler.ValidateTokenAsync(token, validationParameters);
+            var principal = await tokenHandler.ValidateTokenAsync(validateJwtRequestDto.AccessToken, validationParameters);
             //var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
             //var roleClaim = principal.FindFirst(ClaimTypes.Role);
             //username = principal.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
             //return userIdClaim?.Value ?? string.Empty;
-            return string.Empty;
+            validateTokenResponse.IsValid = true;
         }
         catch (Exception ex)
         {
-            return string.Empty;
+            validateTokenResponse.ErrorMessage = ex.Message;
+            validateTokenResponse.IsValid = false;
         }
+        return validateTokenResponse;
     }
 }

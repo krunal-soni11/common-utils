@@ -1,6 +1,6 @@
 ﻿namespace Services.Auth;
 public interface IAuthService
 {
-    string CreateJWT(int id, string username, string role);
-    Task<string> ValidateJWT(string token);
+    CreateJwtResponseDto CreateJWT(CreateJwtRequestDto createJwtRequestDto);
+    Task<ValidateJwtResponseDto> ValidateJWT(ValidateJwtRequestDto validateJwtRequestDto);
 }
