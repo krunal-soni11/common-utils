@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Common.Utils", "CommonUtils
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.Auth", "Services.Auth\Services.Auth.csproj", "{A81AAE2B-0F96-45AA-AB68-1B8F600EB8F4}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Services.Auth.Tests", "Services.Auth.Tests\Services.Auth.Tests.csproj", "{700A50BE-34D9-4296-A8A4-03735FD927D5}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{A81AAE2B-0F96-45AA-AB68-1B8F600EB8F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{A81AAE2B-0F96-45AA-AB68-1B8F600EB8F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{A81AAE2B-0F96-45AA-AB68-1B8F600EB8F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{700A50BE-34D9-4296-A8A4-03735FD927D5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{700A50BE-34D9-4296-A8A4-03735FD927D5}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{700A50BE-34D9-4296-A8A4-03735FD927D5}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{700A50BE-34D9-4296-A8A4-03735FD927D5}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

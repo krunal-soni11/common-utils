@@ -12,13 +12,13 @@ public class AuthService : IAuthService
 
         var claims = new List<Claim>
         {
-            new Claim(ClaimTypes.NameIdentifier, createJwtRequestDto.UserId),
-            new Claim(ClaimTypes.Name, createJwtRequestDto.Username)
+            new Claim(JwtRegisteredClaimNames.NameId, createJwtRequestDto.UserId),
+            new Claim(JwtRegisteredClaimNames.Name, createJwtRequestDto.Username)
         };
-        foreach (var role in createJwtRequestDto.Roles)
-        {
-            claims.Add(new Claim(ClaimTypes.Role, role));
-        }
+        //foreach (var role in createJwtRequestDto.Roles)
+        //{
+        //    claims.Add(new Claim(ClaimTypes.Role, role));
+        //}
         var tokenDescriptor = new SecurityTokenDescriptor
         {
             Subject = new ClaimsIdentity(claims),
@@ -28,11 +28,10 @@ public class AuthService : IAuthService
             Issuer = _jwtSettings.Issuer,
             Audience = _jwtSettings.Audience
         };
-        //tokenDescriptor.Claims = new Dictionary<string, object>
-        //{
-        //    { "userId", userId },
-        //    { "role", role }
-        //};
+        tokenDescriptor.Claims = new Dictionary<string, object>
+        {
+            { "roles", JsonSerializer.Serialize(createJwtRequestDto.Roles) }
+        };
         var tokenHandler = new JsonWebTokenHandler();
         string token = tokenHandler.CreateToken(tokenDescriptor);
         var tokenResponse = new CreateJwtResponseDto
@@ -59,20 +58,52 @@ public class AuthService : IAuthService
             ClockSkew = TimeSpan.Zero // Remove delay of token when expire
         };
         var validateTokenResponse = new ValidateJwtResponseDto();
-        try
+
+        var tokenValidationResult = await tokenHandler.ValidateTokenAsync(validateJwtRequestDto.AccessToken, validationParameters);
+        validateTokenResponse.IsValid = tokenValidationResult.IsValid;
+        if (validateTokenResponse.IsValid)
         {
-            var principal = await tokenHandler.ValidateTokenAsync(validateJwtRequestDto.AccessToken, validationParameters);
-            //var userIdClaim = principal.FindFirst(ClaimTypes.NameIdentifier);
-            //var roleClaim = principal.FindFirst(ClaimTypes.Role);
-            //username = principal.FindFirst(ClaimTypes.Name)?.Value ?? string.Empty;
-            //return userIdClaim?.Value ?? string.Empty;
-            validateTokenResponse.IsValid = true;
+            validateTokenResponse.IsValid = tokenValidationResult.ClaimsIdentity.IsAuthenticated;
+            var principalClaims = tokenValidationResult.Claims.Select(kv => new Claim(kv.Key, kv.Value?.ToString() ?? string.Empty)).ToList();
+            if (principalClaims.Select(x => x.Type).Contains(JwtRegisteredClaimNames.NameId))
+            {
+                validateTokenResponse.UserId = principalClaims.First(x => x.Type == JwtRegisteredClaimNames.NameId).Value;
+            }
+            if (principalClaims.Select(x => x.Type).Contains(JwtRegisteredClaimNames.Name))
+            {
+                validateTokenResponse.Username = principalClaims.First(x => x.Type == JwtRegisteredClaimNames.Name).Value;
+            }
+            if (principalClaims.Select(x => x.Type).Contains("roles"))
+            {
+                validateTokenResponse.Roles = JsonSerializer.Deserialize<List<string>>(principalClaims.First(x => x.Type == "roles").Value);
+            }
+            //validateTokenResponse.UserId = principalClaims.First(x => x.k string.Empty;
+            //validateTokenResponse.Roles = string.Empty;
         }
-        catch (Exception ex)
+        else 
         {
-            validateTokenResponse.ErrorMessage = ex.Message;
-            validateTokenResponse.IsValid = false;
+            validateTokenResponse.ErrorMessage = GetUserFriendlyErrorMessage(tokenValidationResult.Exception);
         }
+
         return validateTokenResponse;
+    }
+
+    private string GetUserFriendlyErrorMessage(Exception? ex)
+    {
+        if (ex == null)
+            return "An unknown error occurred during token validation.";
+
+        // Extract known IDX error code
+        var errorCode = ex.Message.Split(':')[0].Trim();
+
+        return errorCode switch
+        {
+            "IDX10223" => "Your session has expired. Please log in again.",
+            "IDX10501" => "The token signature is invalid.",
+            "IDX10214" => "The token audience is invalid.",
+            "IDX10213" => "The token issuer is invalid.",
+            "IDX10205" => "The token algorithm is not supported.",
+            _ => "The authentication has failed."
+        };
     }
 }
