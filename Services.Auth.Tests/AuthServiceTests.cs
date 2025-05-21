@@ -41,7 +41,7 @@ public class AuthServiceTests
         //Assert.Contains(jwt.Claims, c => c.Type == "roles" && c.Value == "User");
     }
 
-    [Fact(DisplayName = "Given empty accesstoken, when ValidateJWT is called, then exception is thrown")]
+    [Fact(DisplayName = "Given empty access token, when ValidateJWT is called, then exception is thrown")]
     public async Task ValidateJWT_ShouldValidateAndReturnTokenResponse_ThrowsException()
     {
         var requestDto = new ValidateJwtRequestDto
