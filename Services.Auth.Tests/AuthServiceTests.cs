@@ -17,7 +17,6 @@ public class AuthServiceTests
         mockOptions.Setup(x => x.Value).Returns(jwtSettings);
         _authService = new AuthService(mockOptions.Object);
     }
-
     [Fact(DisplayName = "Given valid request, when CreateJWT is called, then valid token returned")]
     public void CreateJWT_ShouldCreateAndReturnTokenResponse()
     {
@@ -78,6 +77,17 @@ public class AuthServiceTests
             SecretKey = jwtSettings.Key
         };
         var result = await _authService.ValidateJWT(requestDto);
+        Assert.True(result.IsValid == true);
+    }
+    [Fact(DisplayName = "Given api key, when ValidateApiKey is called, then valid response in return")]
+    public async Task ValidateApiKey_ShouldValidateAndReturnValidTokenResponse()
+    {
+        var requestDto = new ValidateApiKeyRequestDto
+        {
+            ApiKeyExpected = "testApiKey",
+            ApiKeyProvided = "testApiKey"
+        };
+        var result = await _authService.ValidateApiKey(requestDto);
         Assert.True(result.IsValid == true);
     }
 }

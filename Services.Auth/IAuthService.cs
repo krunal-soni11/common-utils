@@ -3,4 +3,5 @@ public interface IAuthService
 {
     CreateJwtResponseDto CreateJWT(CreateJwtRequestDto createJwtRequestDto);
     Task<ValidateJwtResponseDto> ValidateJWT(ValidateJwtRequestDto validateJwtRequestDto);
+    Task<ValidateApiKeyResponseDto> ValidateApiKey(ValidateApiKeyRequestDto validateApiKeyRequestDto);
 }

@@ -41,7 +41,16 @@ public class AuthService : IAuthService
         };
         return tokenResponse;
     }
-
+    public async Task<ValidateApiKeyResponseDto> ValidateApiKey(ValidateApiKeyRequestDto validateApiKeyRequestDto)
+    {
+        var isValid = string.Equals(validateApiKeyRequestDto.ApiKeyProvided, validateApiKeyRequestDto.ApiKeyExpected, StringComparison.Ordinal);
+        var validateResponse = new ValidateApiKeyResponseDto
+        {
+            IsValid = isValid
+        };
+        if (isValid) validateResponse.ErrorMessage = null;
+        return await Task.FromResult(validateResponse);
+    }
     public async Task<ValidateJwtResponseDto> ValidateJWT(ValidateJwtRequestDto validateJwtRequestDto)
     {
         var key = Encoding.UTF8.GetBytes(_jwtSettings.Key);
@@ -87,7 +96,6 @@ public class AuthService : IAuthService
 
         return validateTokenResponse;
     }
-
     private string GetUserFriendlyErrorMessage(Exception? ex)
     {
         if (ex == null)
