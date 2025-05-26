@@ -20,4 +20,14 @@ public class HelperPackTests
             Assert.Equal(pngSignature[i], result[i]);
         }
     }
+    [Theory]
+    [InlineData("ipos", "auth", "token")]
+    public void CreateCookieName_ShouldReturnName_InValidConvention(string appName, string module, string purpose)
+    {
+        var result = HelperPack.CreateCookieName(appName, module, purpose);
+
+        Assert.NotNull(result);
+
+        Assert.Equal("ipos_auth_token_dev", result);
+    }
 }

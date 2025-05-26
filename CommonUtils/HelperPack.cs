@@ -84,4 +84,9 @@
         CodeType.PDF417 => BarcodeFormat.PDF_417,
         _ => throw new ArgumentOutOfRangeException(nameof(codeType), codeType, null)
     };
+    
+    public static string CreateCookieName(string appName, string module, string purpose, string environment = "dev")
+    {
+        return $"{appName}_{module}_{purpose}_{environment}".ToLower();
+    }
 }
