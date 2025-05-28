@@ -46,7 +46,7 @@
                     byte[] dataToEncrypt = Encoding.UTF8.GetBytes(plainString);
                     ICryptoTransform symmetricEncryptor = aes.CreateEncryptor();
                     byte[] encryptedDataBytes = symmetricEncryptor.TransformFinalBlock(dataToEncrypt, 0, dataToEncrypt.Length);
-                    encryptedString = Convert.ToBase64String(encryptedDataBytes);
+                    encryptedString = Convert.ToBase64String(encryptedDataBytes);//.Replace('+', '-').Replace('/', '_').TrimEnd('=');
                 }
             }
         }
@@ -89,4 +89,24 @@
     {
         return $"{appName}_{module}_{purpose}_{environment}".ToLower();
     }
+
+    byte[] Compress(byte[] data)
+    {
+        using var output = new MemoryStream();
+        using (var deflateStream = new DeflateStream(output, CompressionLevel.Optimal))
+        {
+            deflateStream.Write(data, 0, data.Length);
+        }
+        return output.ToArray();
+    }
+
+    byte[] Decompress(byte[] compressedData)
+    {
+        using var input = new MemoryStream(compressedData);
+        using var deflateStream = new DeflateStream(input, CompressionMode.Decompress);
+        using var output = new MemoryStream();
+        deflateStream.CopyTo(output);
+        return output.ToArray();
+    }
+
 }
