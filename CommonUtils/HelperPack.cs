@@ -109,4 +109,9 @@
         return output.ToArray();
     }
 
+    public static bool IsNullOrDefault<T>(T value)
+    {
+        return EqualityComparer<T>.Default.Equals(value, default(T));
+    }
+
 }
