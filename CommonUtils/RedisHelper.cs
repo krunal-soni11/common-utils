@@ -14,7 +14,7 @@ public class RedisHelper
 
     public async Task<bool> SetAsync(string key, string value, TimeSpan? expiry = null)
     {
-        return await _db.StringSetAsync(key, value, expiry);
+        return await _db.StringSetAsync(key, value, (Expiration)expiry);
     }
 
     public async Task<string?> GetAsync(string key)
